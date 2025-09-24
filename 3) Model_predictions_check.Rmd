@@ -1,0 +1,107 @@
+---
+title: "Check model predictictions"
+author: "Jari Vandendriessche"
+date: "2025-08-22"
+output: html_document
+---
+
+```{r}
+################################
+# ----------- TEST ----------- #
+################################
+source("BiodivAF.R")
+source("BiodivAF-check.R")
+library(patchwork)   # for arranging multiple ggplots
+library(gridExtra)   # for empty placeholder text
+
+# Preallocate things needed and run
+optie <- "Dependant validation set"
+mods <- c("Age", "Tree_SR")
+interactions <- c("Age:Tree_SR")
+SA.add <- FALSE
+SP.add <- FALSE
+
+#source("Model_updates.R") # Uncomment if you want to run the model updates first
+
+
+```
+
+
+```{r}
+source("BiodivAF.R")
+source("BiodivAF-check.R")
+library(patchwork)   # for arranging multiple ggplots
+library(gridExtra)   # for empty placeholder text
+
+# Preallocate things needed and run
+optie <- "Dependant validation set"
+mods <- c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age")
+interactions <- c("Age:forestshrub_frac", "Age:Tree_SR")
+SA.add <- FALSE
+SP.add <- FALSE
+source("Model_updates.R") # Uncomment if you want to run the model updates first
+```
+
+## Generate predictions
+```{r}
+# Load all model files
+model_files <- list.files("model_outputs", pattern = "^model_.*\\.rds$", full.names = FALSE)
+
+# Load model and predict with random rows
+preds_random <- predict_from_saved_rma_model(model_files[2]) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+preds_random
+
+# Run predictions for all models
+all_preds <- purrr::map_dfr(model_files, ~predict_from_saved_rma_model(.x)) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+all_preds
+```
+
+## Find outlyers
+```{r}
+outliers <- all_preds %>%
+  mutate(is_outlier = abs(ROM_Pred) > 5) %>%
+  filter(is_outlier)
+outliers
+```
+
+```{r}
+validation <- readRDS("Validation_data")  %>%
+  mutate(crtl_mean = ifelse(Metric %in% c("ab", "SR", "totSR"), crtl_mean + 1, crtl_mean), # Solve 0-values: transform to + 1
+         AF_mean = ifelse(Metric %in% c("ab", "SR", "totSR"), AF_mean + 1, AF_mean)) %>%
+  mutate(yi = log(AF_mean/crtl_mean))
+validation
+
+# Load all model files
+model_files <- list.files("model_outputs", pattern = "^model_.*\\.rds$", full.names = FALSE)
+
+# Run predictions for validation set
+all_preds <- purrr::map_dfr(model_files, ~predict_from_saved_rma_model(.x, validation)) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+all_preds
+
+# Plot: metafor prediction vs factual data (for Percent: aes(x = yi_Percent, y = Percent_Pred))
+p1 <- ggplot(all_preds, aes(x = yi, y = ROM_Pred)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(
+    x = "Raw data (ROM)",
+    y = "Metafor Prediction (ROM)"
+  ) +
+  theme_minimal()
+p1
+
+p1 + xlim(-5, 5) + ylim(-5, 5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "black")
+
+results <- evaluate_model(all_preds)
+results 
+all_preds %>% arrange(yi)
+```
+
+
+
+
+
+

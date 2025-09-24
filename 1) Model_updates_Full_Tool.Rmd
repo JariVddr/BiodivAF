@@ -1,0 +1,323 @@
+---
+title: "Full model update BiodivAF"
+author: "Jari Vandendriessche"
+date: "2025-09-04"
+output: html_document
+---
+
+```{r}
+source("2) BiodivAF.R")
+source("3) BiodivAF-check.R")
+library(patchwork)   # for arranging multiple ggplots
+library(gridExtra)   # for empty placeholder text
+
+# Define number of repeats
+n_repeats <- 3
+# Define threshold for outlier models
+rmse_threshold <- 7.5
+
+# --- Preallocate --- 
+mods_list <- list(
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age"),
+  c("Climate", "Soil_type", "Age"),
+  c("Age"),
+  c("Tree_SR", "Shrub_layer", "Age"),
+  c("forestshrub_frac", "Soil_type", "Age"),
+  c("forestshrub_frac", "Age"),
+  c("Tree_SR", "Shrub_layer", "Age"),
+  c("forestshrub_frac", "Soil_type", "Shrub_layer", "Tree_SR", "Age", "Alley.width"),
+  c("forestshrub_frac", "Soil_type", "Age", "Alley.width"),
+  c("forestshrub_frac", "Age", "Alley.width"),
+  c("Tree_SR", "Shrub_layer", "Age"),
+  c("forestshrub_frac", "Soil_type", "Shrub_layer", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Tree_SR", "Age", "Alley.width"),
+  c("Climate", "forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Tree_SR", "Age", "Alley.width"),
+  c("forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"),
+  c("forestshrub_frac", "Soil_type", "Shrub_layer", "Tree.pol", "Org.Conv", "Tree_SR", "Age", "Alley.width"))
+interactions_list <- list(
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  character(0),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  character(0),
+  character(0),
+  character(0),
+  character(0),
+  character(0),
+  character(0),
+  character(0),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  character(0),
+  character(0),
+  character(0),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  character(0),
+  character(0),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  character(0),
+  c("Age:forestshrub_frac", "Age:Tree_SR"),
+  character(0))
+SA_SP.add_list <- c(TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, 
+                    TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)
+
+model_eval <- data.frame(
+  model_nr = integer(),
+  formula = character(),
+  correct_in_CI = numeric(),
+  mean_CI_width = numeric(),
+  outlier_prev = numeric(),
+  slope = numeric(),
+  slope_p = numeric(),
+  intercept_p = numeric(),
+  rmse_1to1 = numeric(),
+  pll = numeric(),
+  ic = numeric(),
+  n_moderators_frac = numeric(),
+  stringsAsFactors = FALSE)
+best_coef <- 1000
+plots_list <- list()
+
+# SA_SP.add_list <- SA_SP.add_list[1:2]  # Limit to ... models
+
+# --------------------------------
+# --- Loop over moderator sets ---
+# --------------------------------
+for (p in 1:length(SA_SP.add_list)){
+  optie <- "Dependant validation set"
+  mods <- mods_list[[p]]
+  interactions <- interactions_list[[p]]
+  SA.add <- SA_SP.add_list[p]
+  SP.add <- SA_SP.add_list[p]
+  
+  n_moderators_frac <- 0 # Preallocate
+  
+  # ------------------------------------
+  # --- Run model in n_repeats times ---
+  # ------------------------------------
+  all_preds_list <- lapply(1:n_repeats, function(rep_id) {
+  
+    # --- Run model building ---
+    source("1) Model_updates.R") 
+    
+    # ----------------------------------
+    # --- # of moderators and models ---
+    # ----------------------------------
+    model_files <- list.files("model_outputs", pattern = "^model_.*\\.rds$", full.names = FALSE)
+    
+    if (SA.add) {
+      n_moderators_frac <<- n_moderators_frac + (length(mods) + 1)*length(model_files)/n_repeats # <<- to update outside function
+    } else {
+      n_moderators_frac <<- n_moderators_frac + length(mods)*length(model_files)/n_repeats # <<- to update outside function
+    }
+    
+    # -----------------------
+    # --- Run predictions ---
+    # -----------------------
+    preds <- tryCatch({
+      purrr::map_dfr(model_files, ~predict_from_saved_rma_model(.x, validation)) %>%
+        mutate(across(where(is.numeric), ~ round(.x, 2)),
+             rep_id = rep_id)  # track repeat
+    }, error = function(e) {
+      message("Prediction failed for run ", p, " & repeat ", rep_id, ": ", e$message)
+      return(NULL)
+    })
+  })
+  
+  # ------------------------------------
+  # --- Combine all repeats - output ---
+  # ------------------------------------
+  all_preds <- bind_rows(all_preds_list)
+  
+  if (is.null(all_preds) || !"ROM_Pred" %in% names(all_preds) || nrow(all_preds) == 0) {
+    formula_str <- "No models available"
+    
+    # --- Placeholder plot if failed ---
+    p1 <- ggplot() + 
+      annotate("text", x = 0.5, y = 0.5, 
+               label = paste("Model", p, "failed\n", formula_str, "SA/SP.add = ", SA.add),
+               size = 3, hjust = 0.5, vjust = 0.5) +
+      theme_void()
+    
+    # Also store NA in evaluation
+    model_eval <- rbind(
+      model_eval,
+      data.frame(
+        formula = paste("Model", p, ":", formula_str, " || SA/SP.add = ", SA.add),
+        model_nr = p,
+        correct_in_CI = NA,
+        mean_CI_width = NA,
+        outlier_prev = NA,
+        slope = NA,
+        slope_p = NA,
+        intercept_p = NA,
+        rmse_1to1 = NA,
+        pll = NA,
+        ic = NA,
+        n_moderators_frac = NA,
+        stringsAsFactors = FALSE))
+    
+  } else {
+    model_files <- list.files("model_outputs", pattern = "^model_.*\\.rds$", full.names = FALSE)
+    # Extract model formula
+    first_model_path <- file.path("model_outputs", model_files[1])
+    model <- readRDS(first_model_path)
+    formula_str <- paste(deparse(model$mod_formula), collapse = "")
+    
+    # --- Evaluate ---
+    outliers <- all_preds %>% mutate(is_outlier = abs(ROM_Pred) > 5)
+    outlier_prevalence <- nrow(filter(outliers, is_outlier)) / nrow(all_preds)
+    
+    results <- evaluate_model(all_preds)
+    
+    model_eval <- rbind(
+      model_eval,
+      data.frame(
+        model_nr = p,
+        formula = paste("Model", p, ":", formula_str, " || SA/SP.add = ", SA.add),
+        correct_in_CI = results$correct_in_CI,
+        mean_CI_width = results$mean_CI_width,
+        outlier_prev = outlier_prevalence,
+        slope = results$slope,
+        slope_p = results$slope_p,
+        intercept_p = results$intercept_p,
+        rmse_1to1 = results$rmse_1to1,
+        pll = results$pll,
+        ic = results$ic,
+        n_moderators_frac = n_moderators_frac,
+        stringsAsFactors = FALSE))
+    
+    # --- Plot ---
+    p1 <- ggplot(all_preds, aes(x = yi, y = ROM_Pred)) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+                  color = "black", linewidth = 1.25) +
+      geom_point(size = 1.5, alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "blue", linewidth = 1.5) +
+      geom_abline(intercept = results$intercept, slope = results$slope,
+              color = "red", linewidth = 1.5) +
+      labs(
+        x = "Raw data (ROM)",
+        y = "Metafor Prediction (ROM)",
+        title = paste("Model", p, ":", formula_str, "SA/SP.add = ", SA.add)) +
+      theme_minimal(base_size = 10) +
+      theme(plot.title = element_text(size = 7, face = "italic", hjust = 0.5)) +
+      xlim(-5, 5) + ylim(-5, 5) 
+    
+    p_tmp <- ggplot(all_preds, aes(x = yi, y = ROM_Pred)) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+                  color = "black", linewidth = 1.25) +
+      geom_point(size = 1.5, alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "blue", linewidth = 1.5) +
+      geom_abline(intercept = results$intercept, slope = results$slope,
+              color = "red", linewidth = 1.5) +
+      labs(
+        x = "Raw data (ROM)",
+        y = "Metafor Prediction (ROM)",
+        title = paste("Model", p, ":", formula_str, " || SA/SP.add = ", SA.add)) +
+      theme_minimal(base_size = 10) +
+      theme(plot.title = element_text(size = 7, face = "italic", hjust = 0.5))
+
+    print(p1)
+    
+    if (!is.na(results$slope) && abs(1-results$slope) < best_coef){
+      p_best_model <- p1
+      p_best_model_outliers <- p_tmp
+      best_coef <- abs(1-results$slope)
+    }
+    
+    # --- Adjust plots for grid visualization ---
+    p1 <-ggplot(all_preds, aes(x = yi, y = ROM_Pred)) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+                  color = "black", linewidth = 0.5) +
+      geom_point(size = 0.25, alpha = 0.4) +
+      geom_smooth(method = "lm", se = FALSE, color = "blue", linewidth = 0.5) +
+      geom_abline(intercept = results$intercept, slope = results$slope,
+              color = "red", linewidth = 0.5) +
+      labs(title = paste("Model", p)) +
+      xlim(-5, 5) + ylim(-5, 5) +
+      theme_minimal() +
+      theme(axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank(), 
+            plot.margin = margin(2, 2, 2, 2), # tighter margins 
+            plot.title = element_text(size = 9, hjust = 0.5)) + 
+      coord_fixed(ratio = 1) # ensures square plots 
+    
+  }
+  
+  plots_list[[p]] <- p1
+}
+
+# --- Arrange panels (4x6 per page, A4) ---
+plots_per_page <- 24
+num_pages <- ceiling(length(plots_list) / plots_per_page)
+
+for (page in 1:num_pages) {
+  start_idx <- (page - 1) * plots_per_page + 1
+  end_idx <- min(page * plots_per_page, length(plots_list))
+  
+  grid <- wrap_plots(plots_list[start_idx:end_idx], ncol = 4, nrow = 6, byrow = TRUE) &
+    theme(plot.margin = margin(1, 1, 1, 1))  # remove global extra margins
+  
+  ggsave(filename = paste0("model_validation_page_", page, ".png"),
+         plot = grid, width = 29.7, height = 42, units = "cm"  )
+}
+
+# Ensure no rownames creep in
+rownames(model_eval) <- NULL 
+
+# Inspect comparison table
+model_eval <- model_eval %>%
+  mutate(
+    # Standardize metrics (z-scores)
+    z_rmse              = scale(rmse_1to1),             # smaller = better !!! differences in datasets
+    z_pll               = scale(-pll),                  # bigger = better !!! differences in datasets
+    z_ic                = scale(ic),                    # smaller = better !!! differences in datasets
+    z_outlier           = scale(outlier_prev),          # smaller = better !!! differences in datasets + shouldn't they be removed?
+    z_slope             = scale(abs(1 - slope)),        # smaller = better
+    z_slope_p           = scale(-slope_p),              # bigger = better
+    z_intercept_p       = scale(-intercept_p),          # bigger = better # What relevance?
+    z_correct           = scale(-correct_in_CI),        # bigger = better
+    z_mean_CI_width     = scale(mean_CI_width),         # smaller = better # Combination of significance level and cI width needed
+    z_n_moderators_frac = scale(n_moderators_frac),     # bigger = better
+
+    # Total score = sum of standardized metrics
+    total_score = z_rmse + z_pll + z_correct + z_mean_CI_width + z_slope_p + z_n_moderators_frac) %>%
+  arrange(total_score) %>%
+  dplyr::select(formula, model_nr, correct_in_CI, mean_CI_width, outlier_prev, slope, slope_p, intercept_p, rmse_1to1, pll, ic, n_moderators_frac, total_score)
+
+model_eval
+write.csv(model_eval, "model_evaluation_summary.csv", row.names = FALSE)
+p_best_model
+p_best_model_outliers
+
+# --------------------------------------------------------
+# Final run: Make sure a right version is stocked to run BiodivAF-app
+# --------------------------------------------------------
+# Preallocate things needed and run
+model_nr <- model_eval$model_nr[1]
+optie <- "Full tool dataset"
+mods <- mods_list[[model_nr]]
+interactions <- interactions_list[[model_nr]]
+SA.add <- SA_SP.add_list[model_nr]
+SP.add <- SA_SP.add_list[model_nr]
+  
+# --- Run model building ---
+source("1) Model_updates.R")
+```
+

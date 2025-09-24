@@ -1,0 +1,2 @@
+"formula","model_nr","correct_in_CI","mean_CI_width","outlier_prev","slope","slope_p","intercept_p","rmse_1to1","pll","ic","n_moderators_frac","total_score"
+"Model 1 : ~Climate + exp__forestshrub_frac + Soil_type + Shrub_layer +     Tree.pol + Org.Conv + Tree_SR + log__Age + Alley.width +     log__Age:exp__forestshrub_frac + log__Age:Tree_SR  || SA/SP.add =  TRUE",1,0.737665463297232,5.64003610108303,0.119735258724428,-0.0057609930703648,1.92798106472946e-23,0.0967770851180596,3.16270363518228,-4575.64434854062,9151.28869708123,153.333333333333,NA
