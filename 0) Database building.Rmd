@@ -141,7 +141,7 @@ data
       # - Pasture: Org.Conv
       # - Forest
       # - Orchard
-# vi) Silvopasture:
+# vi) Silvopastoral:
       # - Pasture: Org.Conv
       # - Forest
       # - Orchard
@@ -164,7 +164,7 @@ matching_rules <- list(
   "Silvoarable" = c("Arable", "Forest", "Orchard"),
   "Silvopastoral tree line" = c("Silvopastoral alley", "Pasture", "Forest", "Orchard", "Field margin"),
   "Silvopastoral alley" = c("Pasture", "Forest", "Orchard"),
-  "Silvopasture" = c("Pasture", "Forest", "Orchard", "Silvopastoral alley"),
+  "Silvopastoral" = c("Pasture", "Forest", "Orchard", "Silvopastoral alley"),
   "Hedgerows" = c("Field margin", "Forest", "Orchard", "Arable", "Pasture"),
   "Agroforestry" = c("Agroecosystem", "Forest", "Orchard")
 )
@@ -187,7 +187,7 @@ group_indices <- unique(df$Index)
  
 for (idx in group_indices) {
   treatment <- filter(df, Index == idx) %>% 
-    filter(System == "Silvoarable tree line" | System == "Silvoarable alley" | System == "Silvoarable" | System == "Silvopasture" | System == "Silvopastoral alley" | System == "Hedgerows" | System == "Agroforestry" | System == "Silvopastoral tree line" )
+    filter(System == "Silvoarable tree line" | System == "Silvoarable alley" | System == "Silvoarable" | System == "Silvopastoral" | System == "Silvopastoral alley" | System == "Hedgerows" | System == "Agroforestry" | System == "Silvopastoral tree line" )
   
   if (nrow(treatment) == 0) {
     next
@@ -307,7 +307,7 @@ tmp13 <- all_data %>%
 tmp_1 <- rbind(tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8.a, tmp8.b, tmp9, tmp10, tmp11, tmp12, tmp13) %>%  
   mutate(AF_type = System_orig) %>%
   mutate(AF_type = ifelse(AF_type == "Silvoarable tree line" | AF_type == "Silvoarable alley", "Silvoarable", AF_type)) %>%
-  mutate(AF_type = ifelse(AF_type == "Silvopastoral tree line" | AF_type == "Silvopastoral alley", "Silvopasture", AF_type))
+  mutate(AF_type = ifelse(AF_type == "Silvopastoral tree line" | AF_type == "Silvopastoral alley", "Silvopastoral", AF_type))
 
 # ----------------------------------------------
 # PART IV: convert all types to an overall AF proxy 

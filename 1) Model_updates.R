@@ -85,7 +85,7 @@ CV <- MetaAnalys_data_overall %>%
   filter(!is.na(AF_sd) & !is.na(crtl_sd)) %>%
   mutate(AF_plottype = ifelse(AF_plottype == "Silvoarable tree line", "Silvoarable", AF_type)) %>%
   mutate(AF_plottype = ifelse(AF_plottype == "Silvoarable alley", "Silvoarable", AF_type)) %>%
-  mutate(AF_plottype = ifelse(AF_plottype == "Silvopastoral alley", "Silvopasture", AF_type)) %>%
+  mutate(AF_plottype = ifelse(AF_plottype == "Silvopastoral alley", "Silvopastoral", AF_type)) %>%
   group_by(AF_plottype) %>%
   summarize(
     CV_AF = median(AF_sd / AF_mean, na.rm = TRUE),
@@ -94,7 +94,7 @@ CV <- MetaAnalys_data_overall %>%
   ungroup()
 add1 <- data.frame(AF_plottype = "Silvoarable tree line", CV_AF = CV$CV_AF[CV$AF_plottype == "Silvoarable"], CV_crtl = CV$CV_crtl[CV$AF_plottype == "Silvoarable"])
 add2 <- data.frame(AF_plottype = "Silvoarable alley", CV_AF = CV$CV_AF[CV$AF_plottype == "Silvoarable"], CV_crtl = CV$CV_crtl[CV$AF_plottype == "Silvoarable"])
-add3 <- data.frame(AF_plottype = "Silvopastoral alley", CV_AF = CV$CV_AF[CV$AF_plottype == "Silvopasture"], CV_crtl = CV$CV_crtl[CV$AF_plottype == "Silvopasture"])
+add3 <- data.frame(AF_plottype = "Silvopastoral alley", CV_AF = CV$CV_AF[CV$AF_plottype == "Silvopastoral"], CV_crtl = CV$CV_crtl[CV$AF_plottype == "Silvopastoral"])
 CV <- rbind(CV, add1, add2, add3)
 
 # Impute missing SD values
@@ -367,7 +367,7 @@ for (i in 1:nrow(df_to_test)) {
   if (aftype == "Silvoarable" && SA.add) {
     new_mods <- c(mods, "Crop_group")
   }
-  if (aftype == "Silvopasture" && SP.add) {
+  if (aftype == "Silvopastoral" && SP.add) {
     new_mods <- c(mods, "grazing_dens")
   }
   

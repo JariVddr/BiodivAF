@@ -33,7 +33,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("AF_type", "Agroforestry System Type:",
-                  choices = c("", "Agroforestry", "Silvoarable", "Silvopasture"), # "" is placeholder
+                  choices = c("", "Agroforestry", "Silvoarable", "Silvopastoral"), # "" is placeholder
                   selected = ""),
       
       checkboxGroupInput("group_metric", "Select Biodiversity group and metric of interest:",
@@ -64,7 +64,7 @@ ui <- fluidPage(
                                                "Grass/Ley", "Vegetables", "Orchard"), 
                                    selected = default_values$Crop_group)),
       
-      conditionalPanel(condition = "input.AF_type == 'Silvopasture'",
+      conditionalPanel(condition = "input.AF_type == 'Silvopastoral'",
                        selectInput("grazing_dens", "Grazing density", 
                                    choices = c("high", "medium", "low", "very low"), 
                                    selected = default_values$grazing_dens)),

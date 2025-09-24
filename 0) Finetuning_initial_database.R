@@ -306,9 +306,9 @@ data$Age[data$Age > 60] <- 60
 ######################### System types #######################################
 
 # Homogenization of System
-data$System[data$System == "Forest grazing"] <- "Silvopasture"  # Forest grazing is in strictu senso often a very scarcely grazed silvopastoral system
-data$System[data$System == "Silvopastoral"] <- "Silvopasture" 
-data$System[data$System == "Silvopastoral"] <- "Silvopasture" 
+data$System[data$System == "Forest grazing"] <- "Silvopastoral"  # Forest grazing is in strictu senso often a very scarcely grazed silvopastoral system
+data$System[data$System == "Silvopasture"] <- "Silvopastoral" 
+data$System[data$System == "silvopastoral"] <- "Silvopastoral" 
 data$Specif[data$System == "Forest"] <- "Native forest"
 data$Specif[data$System == "Forest plantation"] <- "Plantation"
 data$System[data$System == "Forest plantation"] <- "Forest"
