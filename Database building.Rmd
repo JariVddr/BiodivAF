@@ -1,0 +1,532 @@
+---
+title: "Meta-analyse agroforestry"
+author: "Jari Vandendriessche"
+date: "2023-10-05"
+output: html_document
+---
+```{r}
+rm(list = ls())   # remove everything from workspace
+gc() # garbage collection
+
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(stringr)
+```
+
+###########################################
+## Concatenate to one df
+###########################################
+```{r}
+# ----------------------------------------------
+# Part -I: Load & view datasets
+# ----------------------------------------------
+AF_Kletty <- read.csv("Data/2) Database Kletty.csv", header = TRUE, stringsAsFactors = FALSE) %>% 
+  dplyr::select(Ref, Title, Climate, Country,
+         System, Specif, Org.Conv, Crop.spec, Tree.spec, crtl_dist, Age,
+         Metric, Spec,
+         means, sd, se, CI, n, 
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         Loc_region, Loc_exact,
+         Comments, Rawdata, Sampling_year)
+AF_Kletty
+
+AF_Torralba <- read.csv("Data/1) Database Torralba.csv", header = TRUE, stringsAsFactors = FALSE) %>%
+  mutate(Sampling_year = NA) %>% 
+  dplyr::select(Ref, Title, Climate, Country,
+         System, Specif, Org.Conv, Crop.spec, Tree.spec, crtl_dist, Age,
+         Metric, Spec,
+         means = mean, sd, se, CI, n, 
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         Loc_region, Loc_exact,
+         Comments, Rawdata, Sampling_year)
+AF_Torralba
+
+AF_Mupepele <- read.csv("Data/1) Database Mupepele.csv", header = TRUE, stringsAsFactors = FALSE) %>%
+  mutate(CI = as.numeric(CI)) %>%
+  dplyr::select(Ref, Title, Climate, Country,
+         System, Specif, Org.Conv, Crop.spec, Tree.spec, crtl_dist, Age,
+         Metric, Spec,
+         means = mean, sd, se, CI, n, 
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         Loc_region, Loc_exact,
+         Comments, Rawdata, Sampling_year)
+AF_Mupepele
+
+AF_Staton <- read.csv("Data/1) Database Staton.csv", header = TRUE, stringsAsFactors = FALSE) %>%
+  dplyr::select(Ref, Title, Climate, Country,
+         System, Specif, Org.Conv, Crop.spec, Tree.spec, crtl_dist, Age,
+         Metric, Spec,
+         means = mean, sd, se, CI, n, 
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         Loc_region, Loc_exact,
+         Comments, Rawdata, Sampling_year)
+AF_Staton
+
+AF_add <- read.csv("Data/0) Database additions.csv", header = TRUE, stringsAsFactors = FALSE) %>%
+  mutate(CI = as.numeric(CI)) %>%
+  dplyr::select(Ref, Title, Climate, Country,
+         System, Specif, Org.Conv, Crop.spec, Tree.spec, crtl_dist, Age,
+         Metric, Spec,
+         means = mean, sd, se, CI, n, 
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         Loc_region, Loc_exact,
+         Comments, Rawdata, Sampling_year)
+AF_add
+
+Vandendriessche_et_al_a <- read.csv("BiodivAF/Data_per_study/Vandendriessche_Eeraerts_et_al._unpublished_a.csv", header = TRUE, stringsAsFactors = FALSE)
+Vandendriessche_et_al_b <- read.csv("BiodivAF/Data_per_study/Vandendriessche_Eeraerts_et_al._unpublished_b.csv", header = TRUE, stringsAsFactors = FALSE)
+Vandendriessche_et_al_c <- read.csv("BiodivAF/Data_per_study/Vandendriessche_Eeraerts_et_al._unpublished_c.csv", header = TRUE, stringsAsFactors = FALSE)
+Vandendriessche_et_al_d <- read.csv("BiodivAF/Data_per_study/Vandendriessche_Eeraerts_et_al._unpublished_d.csv", header = TRUE, stringsAsFactors = FALSE)
+Vandendriessche_et_al <- rbind(Vandendriessche_et_al_a, Vandendriessche_et_al_b, Vandendriessche_et_al_c, Vandendriessche_et_al_d) %>% dplyr::select(-X)
+Vandendriessche_et_al
+
+# ----------------------------------------------
+# Part 0: Merge into one intitial dataframe
+# ----------------------------------------------
+data <- rbind(AF_Kletty, AF_Torralba, AF_Mupepele, AF_Staton, AF_add, Vandendriessche_et_al) %>% 
+  mutate(Climate = ifelse(Climate == "T", "Temperate", Climate),
+         Climate = ifelse(Climate == "N", "Temperate", Climate),
+         Climate = ifelse(Climate == "M", "Mediterranean", Climate),
+         Climate = ifelse(Climate == "B", "Boreal/Alpine", Climate),
+         System = ifelse(System == "Silvopasture", "Silvopastoral", System),
+         System = ifelse(System == "silvopasture", "Silvopastoral", System))
+data[data == ""] <- NA
+data
+
+total_entries <- nrow(data)
+total_study_entries <- n_distinct(data$Title)
+```
+###########################################
+## Calculate sd
+###########################################
+```{r}
+# ----------------------------------------------
+# Part I: Calculate sd from CI and se
+# ----------------------------------------------
+
+for (i in 1:nrow(data)) {
+  if (is.na(data$sd[i])) {
+    
+    ## SE to sd
+    if(!is.na(data$se[i])) {
+      data$sd[i] <- data$se[i]*sqrt(data$n[i])
+      
+    ## CI to sd
+    } else if(!is.na(data$CI[i])) {
+        if(data$n[i] > 60) {
+          data$sd[i] <- sqrt(data$n[i])*(2*data$CI[i])/(2*1.96)
+        } else {
+          data$sd[i] <- sqrt(data$n[i])*(2*data$CI[i])/(2*qt(0.95, data$n[i]-1))
+        }
+    }
+  }
+}
+
+data
+```
+
+###########################################
+## Column clustering to prevent mismatches
+###########################################
+```{r}
+# ----------------------------------------------
+# Part II: Purify columns to standardized groups
+# ----------------------------------------------
+
+data %>% count(Spec) %>% arrange(Spec)
+
+source("Finetuning_initial_database.R")
+
+data %>% count(Crop_group) %>% arrange(Crop_group)
+data %>% count(Spec_group) %>% arrange(Spec_group)
+data %>% count(Tree.spec) %>% arrange(Tree.spec)
+
+data
+
+# ----------------------------------------------
+# Data-assemblage: 
+# ----------------------------------------------
+# Need to purify dataset in order to NOT mismatch rows in taxonomic different groups due to differences made in the script above
+
+data <- data %>%
+  group_by(Ref, Title, Climate, Country, Study_ID,
+         System, Specif, Org.Conv, Crop.spec, crtl_dist, Age,
+         Tree.cat, Tree.pol, Tree_SR, Tree_layer, Shrub_layer,
+         Metric, Spec, n, 
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         lat_region, lng_region, lat_exact, lng_exact, Site_ID, Region_ID, 
+         Comments, Sampling_year,
+         Spec_group, Overall, Crop_group, Soil_fauna, Natural_enemies, Pollinators, Pest_species, Aboveground_Arthropods, Soil_related_Arthropods,
+         Arthropods, Flying_Vertebrates, Autotrophs, Ground_dwelling_Vertebrates) %>% 
+  summarize(means = sum(means, na.rm = TRUE), 
+            sd = sqrt(sum(sd^2, na.rm = TRUE))) %>%
+  ungroup()
+  
+```
+
+###########################################
+## Treatment-Control dataset creation
+###########################################
+```{r}
+# Per study relevant treatment-control relations have to be constructed
+# Important rules herewith are that:
+# 1) the AF-characteristics are taken into account: Loc_exact, d, h, tree_spec
+# 2) means, sd and n are splitted in means_orig, sd_orig, n_orig and mens_crtl, sd_crtl, n_crtl
+# 3) System and Specif are splitted in System_orig, System_crtl and Specif_orig, Specif_crtl
+# 4) All other metrics are taken from the treatment row
+
+# Following columns should be the same for system and metric comparability
+# a) Ref
+# b) Loc_region
+# c) Crop_group
+# d) OrgCon
+# e) Sampling_Year
+# f) Metric (if Metric == "div", also Comment)
+# g) Spec
+# h) grazing_spec
+
+# We are interested in comparing following columns:
+# i) Silvoarable tree line:
+      # - Silvoarable alley: Org.Conv, Crop_group
+      # - Field margin
+      # - Arable: Org.Conv, Crop_group
+      # - Forest
+      # - Orchard
+      # - Field margin
+# ii) Silvoarable alley:
+      # - Arable: Org.Conv, Crop_group
+      # - Forest
+      # - Orchard
+# iii) Silvoarable:
+      # - Arable: Org.Conv, Crop_group
+      # - Forest
+      # - Orchard
+# iv) Silvoarable tree line:
+      # - Silvoarable alley: Org.Conv, Crop_group
+      # - Field margin
+      # - Arable: Org.Conv, Crop_group
+      # - Forest
+      # - Orchard
+      # - Field margin
+# v) Silvopastural alley:
+      # - Pasture: Org.Conv
+      # - Forest
+      # - Orchard
+# vi) Silvopastoral:
+      # - Pasture: Org.Conv
+      # - Forest
+      # - Orchard
+      # - silvopastoral alley: Org.Conv
+# vii) Hedgerows:
+      # - Field margin
+      # - Forest
+      # - Orchard
+      # - Arable
+      # - Pasture
+# viii) Agroforestry
+      # - Agroecosystem: Org.Conv, Crop_group
+      # - Forest
+      # - Orchard
+
+# Define matching rules
+matching_rules <- list(
+  "Silvoarable tree line" = c("Silvoarable alley", "Arable", "Forest", "Orchard", "Field margin"),
+  "Silvoarable alley" = c("Arable", "Forest", "Orchard"),
+  "Silvoarable" = c("Arable", "Forest", "Orchard"),
+  "Silvopastoral tree line" = c("Silvopastoral alley", "Pasture", "Forest", "Orchard", "Field margin"),
+  "Silvopastoral alley" = c("Pasture", "Forest", "Orchard"),
+  "Silvopastoral" = c("Pasture", "Forest", "Orchard", "Silvopastoral alley"),
+  "Hedgerows" = c("Field margin", "Forest", "Orchard", "Arable", "Pasture"),
+  "Agroforestry" = c("Agroecosystem", "Forest", "Orchard")
+)
+
+# Initialize an empty dataframe for final output
+result_list <- list()
+
+# Make appropriate groups
+# Account for the fact that Field margin, Hedgerows and Forests were not assigned with crop types or Org.Convs, therefore
+df <- data %>%
+  group_by(Study_ID, Region_ID, Sampling_year, Metric, Spec, Comments) %>%
+  mutate(Index = cur_group_id()) %>%  # Assigns a unique index per group
+  ungroup() %>% arrange(Index)
+
+df %>% dplyr::select(Index, Ref, Metric, Spec, System, Org.Conv, Sampling_year, lat_region, lng_region, Comments) %>% filter(Spec == "Bats") # look for errors!!!!
+
+# Loop over each group
+# Unique group indices
+group_indices <- unique(df$Index)
+ 
+for (idx in group_indices) {
+  treatment <- filter(df, Index == idx) %>% 
+    filter(System == "Silvoarable tree line" | System == "Silvoarable alley" | System == "Silvoarable" | System == "Silvopastoral" | System == "Silvopastoral alley" | System == "Hedgerows" | System == "Agroforestry" | System == "Silvopastoral tree line" )
+  
+  if (nrow(treatment) == 0) {
+    next
+  } 
+  else {
+    for (i in 1:nrow(treatment)) {
+      tmp <- treatment[i, ]
+      if (tmp$System == "Hedgerows") { 
+        control_options <- filter(df, Index == idx) %>% 
+          filter(System %in% matching_rules[[tmp$System]]) %>% 
+          filter((System == "Arable") |
+                (System == "Alley") |
+                (System == "Field margin") |
+                (System == "Forest") |
+                (System == "Orchard") |
+                (System == "Pasture"))
+      } else {
+        control_options <- filter(df, Index == idx) %>% 
+          filter(System %in% matching_rules[[tmp$System]]) %>% 
+          filter(
+              ((System == "Arable" | System == "Silvoarable alley") &
+                 ((Org.Conv == tmp$Org.Conv | (is.na(Org.Conv) & is.na(tmp$Org.Conv))) &
+                  (Crop_group == tmp$Crop_group | (is.na(Crop_group) & is.na(tmp$Crop_group))))) |
+              (System == "Field margin") |
+              (System == "Forest") |
+              (System == "Orchard") |
+              (System == "Silvopastoral alley" &
+                 (Org.Conv == tmp$Org.Conv | (is.na(Org.Conv) & is.na(tmp$Org.Conv)))) |
+              (System == "Pasture" &
+                 (Org.Conv == tmp$Org.Conv | (is.na(Org.Conv) & is.na(tmp$Org.Conv))))
+            )
+        }
+  
+      if (nrow(control_options) > 0) {
+        for (j in 1:nrow(control_options)) {
+          control <- control_options[j, ]
+      
+          # Append matched pairs
+          new <- tmp %>% dplyr::select(-System, -means, -sd, -n) %>%
+            mutate(System_orig = tmp$System,
+                   Specif_orig = tmp$Specif,
+                   means_orig = tmp$means,
+                   sd_orig = tmp$sd,
+                   n_orig = tmp$n,
+                   System_crtl = control$System,
+                   Specif_crtl = control$Specif,
+                   means_crtl = control$means,
+                   sd_crtl = control$sd,
+                   n_crtl = control$n,
+                   crtl_dist = control$crtl_dist) %>%
+            mutate(Org.Conv = ifelse(is.na(Org.Conv), control$Org.Conv, Org.Conv),
+                   Crop_group = ifelse(is.na(Crop_group), control$Crop_group, Crop_group), # If Hedgerow
+                   crtl_dist = ifelse(is.na(crtl_dist), control$crtl_dist, crtl_dist)) # crtl_dist is relevant when comparing Alleys with proper controls or tree rows
+            
+            result_list[[length(result_list) + 1]] <- new
+        }
+      }
+    }
+  }
+}
+df_pairs <- bind_rows(result_list)
+df_pairs
+
+df_pairs %>% dplyr::select(Index, Ref, Metric, Spec, System_orig, System_crtl, Sampling_year, lat_region, lng_region) %>% filter(Spec == "Bats") # look for errors
+```
+
+###########################################
+# Concatenate data
+###########################################
+```{r}
+all_data <- df_pairs
+
+# ----------------------------------------------
+# PART III: Preallocate vector GROUP
+# ----------------------------------------------
+tmp1 <- all_data %>%
+  filter(Overall == "X") %>%
+  mutate(Group = "Overall") 
+tmp2 <- all_data %>%
+  filter(Soil_fauna == "X") %>%
+  mutate(Group = "Soil fauna")
+tmp3 <- all_data %>%
+  filter(Natural_enemies == "X") %>%
+  mutate(Group = "Natural enemies")
+tmp4 <- all_data %>%
+  filter(Pollinators == "X") %>%
+  mutate(Group = "Pollinators")
+tmp5 <- all_data %>%
+  filter(Pest_species == "X") %>%
+  mutate(Group = "Pest species")
+tmp6 <- all_data %>%
+  filter(Soil_fauna == "X") %>%
+  mutate(Group = "Overall")
+tmp7 <- all_data %>%
+  filter(Autotrophs == "X") %>% 
+  mutate(Group = "Autotrophs")
+tmp8.a <- all_data %>%
+  filter(Spec_group == "Aves" | Spec_group == "Lichen" | Spec_group == "Coleoptera" | Spec_group == "Herpetofauna" |
+         Spec_group == "Lepidoptera" | Spec_group == "Hymenoptera" | Spec_group == "Araneae" | Spec_group == "Chiroptera" | 
+         Spec_group == "Gastropoda" | Spec_group == "Fungi"| Spec_group == "Lumbricidae" | Spec_group == "Isopoda" | 
+         Spec_group == "Chilopoda" | Spec_group == "Diplopoda" | Spec_group == "Microbiota") %>%
+  mutate(Group = Spec_group)
+tmp8.b <- all_data %>%
+  filter(Spec == "Carabids" | Spec == "Staphylinids" | Spec == "Ladybugs" | Spec == "Bees" |
+         Spec == "Butterflies" | Spec == "Moths" | Spec == "Wasps" | Spec == "Ants" | Spec == "Hoverflies") %>%
+  mutate(Group = Spec)
+tmp9 <- all_data %>%
+  filter(Aboveground_Arthropods == "X") %>% 
+  mutate(Group = "Aboveground invertebrates")
+tmp10 <- all_data %>%
+  filter(Soil_related_Arthropods == "X") %>% 
+  mutate(Group = "Soil-related invertebrates")
+tmp11 <- all_data %>%
+  filter(Flying_Vertebrates == "X") %>% 
+  mutate(Group = "Flying vertebrates")
+tmp12 <- all_data %>%
+  filter(Ground_dwelling_Vertebrates == "X") %>% 
+  mutate(Group = "Ground-dwelling vertebrates")
+tmp13 <- all_data %>%
+  filter(Arthropods == "X") %>% 
+  mutate(Group = "Arthropods")
+tmp_1 <- rbind(tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8.a, tmp8.b, tmp9, tmp10, tmp11, tmp12, tmp13) %>%  
+  mutate(AF_type = System_orig) %>%
+  mutate(AF_type = ifelse(AF_type == "Silvoarable tree line" | AF_type == "Silvoarable alley", "Silvoarable", AF_type)) %>%
+  mutate(AF_type = ifelse(AF_type == "Silvopastoral tree line" | AF_type == "Silvopastoral alley", "Silvopastoral", AF_type))
+
+# ----------------------------------------------
+# PART IV: convert all types to an overall AF proxy 
+# ----------------------------------------------
+tmp_0 <- tmp_1 %>%
+  filter(System_orig != "Agroforestry") %>%
+  mutate(AF_type = "Agroforestry")
+
+# ----------------------------------------------
+# PART V: convert silvoarable tree rows to the hedgerow proxy
+# ----------------------------------------------
+tmp_01 <- tmp_1 %>%
+  filter(System_orig == "Silvoarable tree line" | System_orig == "Silvopastoral tree line") %>%
+  mutate(AF_type = "Hedgerows")
+
+# ----------------------------------------------
+# Part VI: Data-assemblage I
+# ----------------------------------------------
+tmp_0
+tmp_01
+tmp_1
+
+MetaAnalys_data <- rbind(tmp_0, tmp_01, tmp_1)
+
+# ----------------------------------------------
+# Part VII: Data-assemblage II : convert tot SR to SR
+# ----------------------------------------------
+tmp <- MetaAnalys_data %>% filter(Metric == "totSR") %>% mutate(Metric = "SR")
+
+MetaAnalys_data <- rbind(MetaAnalys_data, tmp) %>%
+  dplyr::select(Ref, Title, Climate, Country, Study_ID,
+         AF_type, AF_plottype = System_orig, Specif_orig, System_crtl, Specif_crtl, Org.Conv, Crop_group, crtl_dist, Age,
+         Tree.cat, Tree.pol, Tree_SR, Tree_layer, Shrub_layer,
+         Metric, Group,
+         AF_mean = means_orig, AF_sd = sd_orig, AF_n = n_orig, crtl_mean = means_crtl, crtl_sd = sd_crtl, crtl_n = n_crtl,
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         lat_region, lng_region, lat_exact, lng_exact, Site_ID, Region_ID,
+         Comments, Sampling_year) # Order properly
+MetaAnalys_data
+
+# ----------------------------------------------
+# Part VIII: Further purification: one agricultural comparator for Agroforestry + crtl_dist
+# ----------------------------------------------
+
+MetaAnalys_data <- MetaAnalys_data %>% mutate(lng_tmp = lng_exact, lat_tmp = lat_exact) %>%
+  mutate(crtl_dist = ifelse(is.na(crtl_dist) & AF_plottype == "Silvoarable tree line", 0, crtl_dist),
+         crtl_dist = ifelse(is.na(crtl_dist) & AF_plottype == "Silvopastoral tree line", 0, crtl_dist),
+         crtl_dist = ifelse(is.na(crtl_dist) & !is.na(Alley.width), Alley.width/4, crtl_dist), # Alley width represents distance between two tree rows, so:
+                             # when sampling randomly, you would expect crtl_dist to be divided between 0 and alley width/2, the mean is then alley width/4
+         crtl_dist = ifelse(is.na(crtl_dist), mean(crtl_dist, na.rm = TRUE), crtl_dist)) 
+
+MetaAnalys_data <- MetaAnalys_data %>%
+  mutate(System_crtl = ifelse(AF_type == "Agroforestry" & (System_crtl == "Arable" | System_crtl == "Pasture"), "Agroecosystem", System_crtl))
+
+# ----------------------------------------------
+# Part X: Summarize over appropriate groups
+# ----------------------------------------------
+# Causes diluting of effect sizes, but enhances data quality
+# Sums within biodiversity group to get more representative data
+
+# ----------------------------------------------
+# Data-assemblage: 
+# ----------------------------------------------
+# Need to purify dataset in order to NOT mismatch rows in taxonomic different groups due to differences made in the script above
+MetaAnalys_data <- MetaAnalys_data %>%
+  group_by(Study_ID, Ref, Title, Climate, Country,
+         AF_type, AF_plottype, Specif_orig, System_crtl, Specif_crtl, Org.Conv, Crop_group, crtl_dist, Age,
+         Tree.cat, Tree.pol, Tree_SR, Tree_layer, Shrub_layer,
+         Metric, Group,
+         AF_n, crtl_n,
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         lat_region, lng_region, lat_exact, lng_exact, Site_ID, Region_ID, 
+         Comments, Sampling_year) %>% 
+  summarize(AF_mean = sum(AF_mean, na.rm = TRUE),     # At the moment too little data to do the ecological summrization?
+            crtl_mean = sum(crtl_mean, na.rm = TRUE),
+            AF_sd = sqrt(sum(AF_sd^2, na.rm = TRUE)),
+            crtl_sd = sqrt(sum(crtl_sd^2, na.rm = TRUE))) %>%
+  ungroup() %>%
+  dplyr::select(Study_ID, Ref, Title, Climate, Country,
+         AF_type, AF_plottype, Specif_orig, System_crtl, Specif_crtl, Org.Conv, Crop_group, crtl_dist, Age,
+         Tree.cat, Tree.pol, Tree_SR, Tree_layer, Shrub_layer,
+         Metric, Group,
+         AF_mean, AF_sd, AF_n, crtl_mean, crtl_sd, crtl_n,
+         grazing_spec, grazing_dens, Strip.width, Alley.width, Tree.height, Tree.diameter,
+         lat_region, lng_region, lat_exact, lng_exact, Site_ID, Region_ID, 
+         Comments, Sampling_year) # Order properly
+
+# ----------------------------------------------
+# Part X: Further purification: 0-values are removed
+# ----------------------------------------------
+# Remove when no specimen is found
+# Remove when div is zero
+MetaAnalys_data <- MetaAnalys_data %>%
+  filter(!(AF_mean == 0 & crtl_mean == 0)) %>%
+  filter(!(!Metric %in% c("ab", "totSR", "SR") & AF_mean == 0)) %>%
+  filter(!(!Metric %in% c("ab", "totSR", "SR") & crtl_mean == 0))
+
+# ----------------------------------------------
+# Part XI: Addition of coordinate related data
+# ----------------------------------------------
+source('GridCoords.R')
+source('LandCompl_SoilData.R')
+plotdata # Check if procedure went well
+
+MetaAnalys_data <- left_join(MetaAnalys_data, coords, by = c("lng_exact", "lat_exact", "lng_region", "lat_region"))
+MetaAnalys_data[MetaAnalys_data == ""] <- NA
+MetaAnalys_data[MetaAnalys_data == " "] <- NA
+MetaAnalys_data[MetaAnalys_data == "  "] <- NA
+MetaAnalys_data
+
+saveRDS(MetaAnalys_data, "Meta-analysis full database")
+
+total_entries_purified <- nrow(MetaAnalys_data)
+total_entries_purified_unique <- n_distinct(dplyr::select(MetaAnalys_data, Title, Site_ID, Metric, Sampling_year, Comments, AF_mean, AF_sd, AF_n, crtl_mean, crtl_sd, crtl_n))
+total_study_entries_purified <- n_distinct(MetaAnalys_data$Study_ID)
+total_site_entries_purified <- n_distinct(MetaAnalys_data$Site_ID)
+total_country_entries_purified <- n_distinct(MetaAnalys_data$Country)
+```
+
+```{r}
+###########################################
+###### Exploration on the dataset #########
+###########################################
+
+Authors_AF <- all_data %>%
+  dplyr::select(Ref, Title) %>%
+  distinct() %>%
+  arrange(Ref, Title)
+Authors_AF
+
+Locations_AF <- all_data %>% 
+  dplyr::select(lng_region, lat_region, Country) %>%
+  distinct() %>%
+  arrange(Country)
+Locations_AF
+write.csv(Locations_AF, "Plot_locations_AF_literature.csv", row.names = FALSE)
+
+Groups_AF <- filter(MetaAnalys_data, AF_type == "Agroforestry") %>%
+  dplyr::select(Group) %>%
+  count(Group) %>% 
+  arrange(-n)
+Groups_AF
+```
+
+

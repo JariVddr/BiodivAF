@@ -1,0 +1,15 @@
+"Ref","Title","Climate","Country","System","Specif","Org.Conv","Crop.spec","Tree.spec","crtl_dist","Age","Metric","Spec","means","sd","se","CI","n","grazing_spec","grazing_dens","Strip.width","Alley.width","Tree.height","Tree.diameter","Loc_region","Loc_exact","Comments","Rawdata","Sampling_year"
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Silvoarable",NA,NA,"Wheat",NA,NA,"10.5","ab","Natural enemies",1.03,NA,NA,NA,32,NA,NA,NA,13,NA,NA,"43.71311143338703, 3.857340956288866",NA,"Values from Staton","no",NA
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Silvoarable",NA,NA,"Wheat",NA,NA,"10.5","ab","Aphids",1.01,NA,NA,NA,32,NA,NA,NA,13,NA,NA,"43.71311143338703, 3.857340956288866",NA,"Values from Staton","no",NA
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Arable",NA,NA,"Wheat",NA,NA,NA,"ab","Natural enemies",1,NA,NA,NA,8,NA,NA,NA,NA,NA,NA,"43.71311143338703, 3.857340956288866",NA,"Values from Staton","no",NA
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Arable",NA,NA,"Wheat",NA,NA,NA,"ab","Aphids",1,NA,NA,NA,8,NA,NA,NA,NA,NA,NA,"43.71311143338703, 3.857340956288866",NA,"Values from Staton","no",NA
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Silvoarable",NA,NA,"Wheat","Populus, Juglans",NA,"10",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,13,10,NA,"43.71311143338703, 3.857340956288866","43.72613250908754, 3.86637243520412","A","no","2006"
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Silvoarable",NA,NA,"Wheat","Sorbus",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,13,2,NA,"43.71311143338703, 3.857340956288866","43.71703672805305, 3.853641723395667","B","no","2006"
+"Smits et al. 2012","Unexpected lack of influence of tree rows on the dynamics of wheat aphids
+and their natural enemies in a temperate agroforestry system","Mediterranean","France","Silvoarable",NA,NA,"Wheat","Juglans",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,13,NA,NA,"43.71311143338703, 3.857340956288866","43.704136333545705, 3.8611976034121516","C","no","2007"
