@@ -361,7 +361,7 @@ server <- function(input, output, session) {
   observeEvent(input$AF_type, {
     
     # Load model files
-    model_base_dir <- "D:/Users/jjovdndr/OneDrive - UGent/PhD DigitAf/Papers/Rproj/Paper 4/BiodivAF/model_outputs"
+    model_base_dir <- "model_outputs"
     model_files_norm <- list.files(
       model_base_dir, pattern = "^model_.*\\.rds$", full.names = FALSE
     )
