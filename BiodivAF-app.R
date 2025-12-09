@@ -157,9 +157,9 @@ ui <- fluidPage(
           div(class = "biblio-section",
             h3("Bibliography"),
             p(paste("Vandendriessche J, Landuyt D, Eeraerts M, De Frenne P & Verheyen K (2025).", 
-                  "Deliverable 3.4: A multi-case-study modelling framework to assess biodiversity change ", 
-                  "provoked by European-scoped agroforestry implementation.", 
-                  collapse = " ")
+                    "Deliverable 3.4: Concept and establishment of a biodiversity tool for agroforestry applications in Europe", 
+                    "DOI: (to be added upon publication).", 
+                    collapse = " ")
               )),
           
           h3("Contact"),
@@ -237,7 +237,7 @@ ui <- fluidPage(
               ticks = FALSE),
             uiOutput("landscape_shannon_labels"),
             
-            selectInput("Tree_SR", "Tree Species Richness:",
+            selectInput("Tree_SR", "Woody species richness:",
                         choices = c("1", "2", "3", "4", "5+"),
                         selected = "1"),
             
@@ -763,9 +763,9 @@ server <- function(input, output, session) {
             TRUE ~ Group
           ),
           Metric = dplyr::case_when(
-            Metric == "SR" ~ "Species Richness (plot-based)",
+            Metric == "SR" ~ "Mean plot richness",
             Metric == "ab" ~ "Abundance/activity",
-            Metric == "totSR" ~ "Species Richness (field-based)",
+            Metric == "totSR" ~ "Total richness",
             TRUE ~ Metric
           )
         )
@@ -972,9 +972,9 @@ server <- function(input, output, session) {
             Group == "Coleoptera" ~ "Beetles",
             TRUE ~ Group),
           Metric = dplyr::case_when(
-            Metric == "SR" ~ "Species Richness (plot-based)",
+            Metric == "SR" ~ "Mean plot richness",
             Metric == "ab" ~ "Abundance/activity",
-            Metric == "totSR" ~ "Species Richness (field-based)",
+            Metric == "totSR" ~ "Total richness",
             TRUE ~ Metric))
       
       results_plotpoints <- results %>%
@@ -991,9 +991,9 @@ server <- function(input, output, session) {
             Group == "Coleoptera" ~ "Beetles",
             TRUE ~ Group),
           Metric = dplyr::case_when(
-            Metric == "SR" ~ "Species Richness (plot-based)",
+            Metric == "SR" ~ "Mean plot richness",
             Metric == "ab" ~ "Abundance/activity",
-            Metric == "totSR" ~ "Species Richness (field-based)",
+            Metric == "totSR" ~ "Total richness",
             TRUE ~ Metric),
           Age = input$Age)
       
@@ -1010,7 +1010,7 @@ server <- function(input, output, session) {
         coord_cartesian(ylim = c(-100, 400)) +
         facet_wrap(~Metric, ncol = 1, scales = "free_y") +
         labs(title = " ",
-             x = "Stand Age", y = "Biodiversity Gain (%)") +
+             x = "Stand Age (years)", y = "Biodiversity Gain (%)") +
         theme_bw(base_size = 14) +
         theme(legend.position = "top",
               legend.title = element_text(size = 16),
