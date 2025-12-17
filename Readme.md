@@ -9,6 +9,14 @@ For more information we kindly refer to the publications below:
 3) Deliverable 3.4: 
 4) 
 
+The current toolis available via <a href="https://biodivaf.shinyapps.io/BiodivAF/." target="_blank">https://biodivaf.shinyapps.io/BiodivAF/</a>
+
+Data inputs that are needed of this repository for tool employment are: 
+* BiodivAF-app --> *Shiny App*
+* BiodivAF --> *Script for running the Shiny App*
+* model_outputs --> *folder with model outputs used in the shiny app*
+* www --> *folder with icons used in the shiny app*
+
 #### Building the dataset
 *code (.rmd/.R)*
 * Database building

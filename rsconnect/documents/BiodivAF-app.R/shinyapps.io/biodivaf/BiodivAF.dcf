@@ -1,0 +1,13 @@
+name: BiodivAF
+title: BiodivAF
+username: biodivaf
+account: biodivaf
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16278836
+bundleId: 11335810
+url: https://biodivaf.shinyapps.io/BiodivAF/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .Rprofile|BiodivAF-check.R|Database building.Rmd|Finetuning_initial_database.R|GridCoords.R|LandCompl_SoilData.R|Meta-analysis full database|model_evaluation_summary.csv|Model_updates.R|Model_updates_Full_Tool.Rmd|Readme.md|renv.lock

@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(metafor)
 library(shinyjs)
+library(rsconnect)
 
 # Source your model functions
 app_dir <- app_dir <- getwd() # dirname(rstudioapi::getActiveDocumentContext()$path)
@@ -22,7 +23,7 @@ color_groups <- c("black", "black", "black", "black", "#1D4999", "black",
                   "#D29500", "#D29500", "#D29500", "black", "#D29500")
 
 shannon_labels <- c("Extreme Low", "Low", "Medium", "High", "Extreme High")
-shannon_values <- log(c(1, 2, 3, 5, 7))  # adjust to scale
+shannon_values <- c(0.12, log(2), log(3.25), log(4.5), 1.94)  # adjust to scale: log(7) ~ 1.945, minimum in dataset is a bit lower than 0.2
 # Default values for all moderators
 default_values <- list(
   Climate = "Temperate",
@@ -128,6 +129,9 @@ ui <- fluidPage(
                    collapse = " ")),
           
           h3("Background"),
+          p(paste( "The development of this tool is part of the DigitAF project (digitaf.eu/). This european project focuses on", 
+                   "the provision of open-source digital tools for stakeholders to understand effects of agroforestry implementations for agricultural resilience.", 
+                   collapse = " ")),
           p(paste( "During the data assemblage for this tool, biodiversity results were collected on site- and group specific scale", 
                    "to enable predictions on different agroforestry set-ups across different biodiversity groups.", 
                    collapse = " ")),
@@ -157,13 +161,26 @@ ui <- fluidPage(
           div(class = "biblio-section",
             h3("Bibliography"),
             p(paste("Vandendriessche J, Landuyt D, Eeraerts M, De Frenne P & Verheyen K (2025).", 
-                    "Deliverable 3.4: Concept and establishment of a biodiversity tool for agroforestry applications in Europe", 
-                    "DOI: (to be added upon publication).", 
-                    collapse = " ")
-              )),
+                    "Deliverable 3.4: Concept and establishment of a biodiversity tool for agroforestry applications in Europe.", 
+                    "DOI: (to be added upon publication)", 
+                    collapse = " ")),
+            p(paste("Vandendriessche, J. (2025).", 
+                    "Multi-case-study database on European-scoped agroforestry biodiversity research [Data set].", 
+                    "Zenodo. https://doi.org/10.5281/zenodo.17899828", 
+                    collapse = " ")),
+            p(paste("Vandendriessche J, Landuyt D, Eeraerts M, Verheyen, K & De Frenne, P (2025). ", 
+                    "An evidence-based modeling framework to assess biodiversity change through agroforestry implementation in European context.", 
+                    "Zenodo. https://doi.org/10.5281/zenodo.17900792", 
+                    collapse = " ")),
+              ),
           
           h3("Contact"),
           p("Jari.vandendriessche@ugent.be"),
+          
+          h3("Acknowledgements"),
+          p(paste("This work was supported by the DigitAF project (Grant Agreement N° 101059794), co-funded by the European Commission,",
+                  "European Research Agency, within the Horizon Europe programme. The views and opinions expressed in this report are",
+                  "purely those of the writers and may not in any circumstances be regarded as stating an official position of the European Commission.")),
           
           br(),
           actionButton("sel_biodiv_model", "Select biodiversity metrics", class = "btn-primary btn-lg")
@@ -229,7 +246,7 @@ ui <- fluidPage(
             sliderInput("landscape_shannon",
               label = tagList("Landscape diversity:",
                 tags$img(src = "Species_Icons/Shannon.png", height = "60px", 
-                         style = "width:100%; max-width:400px; height:auto; display:block; margin-left:auto; margin-right:auto;")),
+                         style = "width:100%; height:auto; display:block; margin-left:auto; margin-right:auto;")),
               min = min(shannon_values),
               max = max(shannon_values),
               value = default_values$landscape_shannon,
