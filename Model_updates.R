@@ -13,7 +13,7 @@ library(dplyr)
 library(metafor)
 
 # Load dataset
-MetaAnalys_data <- readRDS("Meta-analysis full database") %>%
+MetaAnalys_data <- readRDS("D:/Users/jjovdndr/OneDrive - UGent/PhD DigitAf/Papers/Rproj/Paper 4/Meta-analysis full database") %>%
   # Add data transformations:
   mutate(log__forestshrub_frac = log(forestshrub_frac + 0.01),
          sqrt__forestshrub_frac = sqrt(forestshrub_frac),
@@ -60,7 +60,18 @@ MetaAnalys_data <- readRDS("Meta-analysis full database") %>%
 # Create a core dataset and a validation set
 if (optie == "Full tool dataset") {
   MetaAnalys_data <- MetaAnalys_data
-} else if (optie == "Dependent validation set") {
+} else if (optie == "Independent validation set") {
+  AF_add <- read.csv("D:/Users/jjovdndr/OneDrive - UGent/PhD DigitAf/Papers/Rproj/Paper 4/Data/0) Database additions.csv", 
+                     header = TRUE, stringsAsFactors = FALSE) %>% 
+    dplyr::select(Title)
+  
+  Validation_data <- MetaAnalys_data %>%
+    semi_join(AF_add %>% distinct(Title), by = "Title")
+  saveRDS(Validation_data, "Validation_data")
+  
+  MetaAnalys_data <- anti_join(MetaAnalys_data, AF_add, by = "Title")
+  saveRDS(MetaAnalys_data, "MetaAnalys_core_data")
+} else if (optie == "Dependent validation set" & new.validation.needed == TRUE) {
   # Total target size (allow 8.5%–11%)
   total_n <- nrow(MetaAnalys_data)
   min_n <- round(0.085 * total_n)
@@ -88,6 +99,10 @@ if (optie == "Full tool dataset") {
   # Save
   saveRDS(Validation_data, "Validation_data")
   saveRDS(MetaAnalys_data, "MetaAnalys_core_data")
+} else if (optie == "Dependent validation set" & new.validation.needed == FALSE) {
+  # Already exists for previous model structure
+  Validation_data <- readRDS("Validation_data")
+  MetaAnalys_data <- readRDS("MetaAnalys_core_data")
 }
 
 ############################################################################################################
@@ -177,7 +192,7 @@ data_input <- escalc("ROM",  # effect size : (logaritmic) Ratio of Means or Resp
                      data = data_input)
 data_input <- as.data.frame(data_input)
 
-saveRDS(data_input, "MetaAnalys_core_data_used")
+saveRDS(data_input, "D:/Users/jjovdndr/OneDrive - UGent/PhD DigitAf/Papers/Rproj/Paper 4/MetaAnalys_core_data_used")
 
 # ----------------------------------
 # --- Prepare validation set ---
@@ -201,7 +216,7 @@ if (optie != "Full tool dataset"){
 }
 
 if (!is.null(validation)){
-  saveRDS(validation, "Validation_data_used")
+  saveRDS(validation, "D:/Users/jjovdndr/OneDrive - UGent/PhD DigitAf/Papers/Rproj/Paper 4/Validation_data_used")
 }
 
 ####################################################

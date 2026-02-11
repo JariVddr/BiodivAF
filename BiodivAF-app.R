@@ -14,9 +14,9 @@ order_groups <- c("Overall", "Arthropods", "Soil-related invertebrates", "Aboveg
                   "Microbiota", "Aves", "Chiroptera", "Araneae", "Coleoptera", "Hymenoptera", "Gastropoda", "Lepidoptera", "Isopoda", 
                   "Butterflies", "Moths", "Bees", "Lumbricidae", "Hoverflies")
 order_groups_new <- c("Overall", "Invertebrates", "Soil-related invertebrates", "Aboveground invertebrates", "Flying vertebrates", "Ground-dwelling vertebrates", 
-                  "Plants & lichen", "Pollinators", "Natural enemies", "Soil biodiversity", "Pest species", 
-                  "Microbiota", "Birds", "Bats", "Spiders", "Beetles", "Hymenoptera", "Gastropods", "Lepidoptera", "Woodlice", 
-                  "Butterflies", "Moths", "Bees", "Earthworms", "Hoverflies")
+                      "Plants & lichen", "Pollinators", "Natural enemies", "Soil biodiversity", "Pest species", 
+                      "Microbiota", "Birds", "Bats", "Spiders", "Beetles", "Hymenoptera", "Gastropods", "Lepidoptera", "Woodlice", 
+                      "Butterflies", "Moths", "Bees", "Earthworms", "Hoverflies")
 color_groups <- c("black", "black", "black", "black", "#1D4999", "black", 
                   "#4A8522", "#D29500", "#1D4999", "black", "#BE5108", 
                   "black", "#1D4999", "#1D4999", "#1D4999", "#1D4999", "black", "#BE5108", "#D29500", "black", 
@@ -113,12 +113,12 @@ ui <- fluidPage(
           h1("Agroforestry Biodiversity Gain Estimator (beta)"),
           
           div(class = "intro-section",
-            h3("Introduction"),
-            p(paste("This web application provides estimated biodiversity responses to agroforestry implementaion", 
-                   "in European climatologic context based on existing case-studies and published scientific data.",
-                   "More than 100 separate case-studies were included in the predictive modelling approach towards this tool.",
-                   "For more information and the scientific background of this tool, please refer to the bibliography section below.",
-                   collapse = " ")
+              h3("Introduction"),
+              p(paste("This web application provides estimated biodiversity responses to agroforestry implementaion", 
+                      "in European climatologic context based on existing case-studies and published scientific data.",
+                      "More than 100 separate case-studies were included in the predictive modelling approach towards this tool.",
+                      "For more information and the scientific background of this tool, please refer to the bibliography section below.",
+                      collapse = " ")
               )),
           
           h3("Purpose"),
@@ -159,20 +159,20 @@ ui <- fluidPage(
                    collapse = " ")),
           
           div(class = "biblio-section",
-            h3("Bibliography"),
-            p(paste("Vandendriessche J, Landuyt D, Eeraerts M, De Frenne P & Verheyen K (2025).", 
-                    "Deliverable 3.4: Concept and establishment of a biodiversity tool for agroforestry applications in Europe.", 
-                    "DOI: (to be added upon publication)", 
-                    collapse = " ")),
-            p(paste("Vandendriessche, J. (2025).", 
-                    "Multi-case-study database on European-scoped agroforestry biodiversity research [Data set].", 
-                    "Zenodo. https://doi.org/10.5281/zenodo.17899828", 
-                    collapse = " ")),
-            p(paste("Vandendriessche J, Landuyt D, Eeraerts M, Verheyen, K & De Frenne, P (2025). ", 
-                    "An evidence-based modeling framework to assess biodiversity change through agroforestry implementation in European context.", 
-                    "Zenodo. https://doi.org/10.5281/zenodo.17900792", 
-                    collapse = " ")),
-              ),
+              h3("Bibliography"),
+              p(paste("Vandendriessche J, Landuyt D, Eeraerts M, De Frenne P & Verheyen K (2025).", 
+                      "Deliverable 3.4: Concept and establishment of a biodiversity tool for agroforestry applications in Europe.", 
+                      "DOI: (to be added upon publication)", 
+                      collapse = " ")),
+              p(paste("Vandendriessche, J. (2025).", 
+                      "Multi-case-study database on European-scoped agroforestry biodiversity research [Data set].", 
+                      "Zenodo. https://doi.org/10.5281/zenodo.17899828", 
+                      collapse = " ")),
+              p(paste("Vandendriessche J, Landuyt D, Eeraerts M, Verheyen, K & De Frenne, P (2025). ", 
+                      "An evidence-based modeling framework to assess biodiversity change through agroforestry implementation in European context.", 
+                      "Zenodo. https://doi.org/10.5281/zenodo.17900792", 
+                      collapse = " ")),
+          ),
           
           h3("Contact"),
           p("Jari.vandendriessche@ugent.be"),
@@ -238,28 +238,31 @@ ui <- fluidPage(
                         choices = c("Loam", "Clay", "Sand")),
             
             sliderInput("forestshrub_frac", "Fraction of woody habitat in a 1km radius (%):",
-                        min = 0, max = 100, value = default_values$forestshrub_frac),
+                        min = 0, max = 50, value = default_values$forestshrub_frac),
+                        #min = 0, max = 100, value = default_values$forestshrub_frac),
             
             sliderInput("crop_frac", "Fraction of cropland area in a 1km radius (%):",
                         min = 0, max = 100, value = default_values$crop_frac),
             
             sliderInput("landscape_shannon",
-              label = tagList("Landscape diversity:",
-                tags$img(src = "Species_Icons/Shannon.png", height = "60px", 
-                         style = "width:100%; height:auto; display:block; margin-left:auto; margin-right:auto;")),
-              min = min(shannon_values),
-              max = max(shannon_values),
-              value = default_values$landscape_shannon,
-              step = 0.01, width = "100%",
-              ticks = FALSE),
+                        label = tagList("Landscape diversity:",
+                                        tags$img(src = "Species_Icons/Shannon.png", height = "60px", 
+                                                 style = "width:100%; height:auto; display:block; margin-left:auto; margin-right:auto;")),
+                        min = min(shannon_values),
+                        max = max(shannon_values),
+                        value = default_values$landscape_shannon,
+                        step = 0.01, width = "100%",
+                        ticks = FALSE),
             uiOutput("landscape_shannon_labels"),
             
             selectInput("Tree_SR", "Woody species richness:",
-                        choices = c("1", "2", "3", "4", "5+"),
+                        choices = c("1", "2"),
+                        #choices = c("1", "2", "3", "4", "5+"),
                         selected = "1"),
             
             sliderInput("Alley.width", "Width between tree rows (m):",
-                        min = 0, max = 60, value = default_values$Alley.width),
+                        min = 6, max = 48, value = default_values$Alley.width),
+                        #min = 0, max = 60, value = default_values$Alley.width),
             
             checkboxInput("Shrub_layer", "Are shrub species present in the agroforestry element?", FALSE),
             checkboxInput("Tree.pol", "Are there agroforestry species that need pollinators?", TRUE),
@@ -646,7 +649,7 @@ server <- function(input, output, session) {
         base_input_model$expmin__forestshrub_frac <- exp(-input$forestshrub_frac / 100)
         base_input_model$minlog__forestshrub_frac <- -log(input$forestshrub_frac + 0.01)
         base_input_model$reversed__forestshrub_frac <- 1 / (1 + input$forestshrub_frac)
-        base_input_model$reversedexp__forestshrub_frac <- 1 / (1 + exp(input$forestshrub_frac))
+        base_input_model$reversedexp__forestshrub_frac <- 1 / (1 + exp(input$forestshrub_frac / 100))
         base_input_model$minexpmin__forestshrub_frac <- -exp(-input$forestshrub_frac / 100)
       }
       if (any(c("crop_frac","exp__crop_frac","log__crop_frac","sqrt__crop_frac",
@@ -659,7 +662,7 @@ server <- function(input, output, session) {
         base_input_model$expmin__crop_frac <- exp(-input$crop_frac / 100)
         base_input_model$minlog__crop_frac <- -log(input$crop_frac + 0.01)
         base_input_model$reversed__crop_frac <- 1 / (1 + input$crop_frac)
-        base_input_model$reversedexp__crop_frac <- 1 / (1 + exp(input$crop_frac))
+        base_input_model$reversedexp__crop_frac <- 1 / (1 + exp(input$crop_frac / 100))
         base_input_model$minexpmin__crop_frac <- -exp(-input$crop_frac / 100)
       }
       if (any(c("landscape_shannon","exp__landscape_shannon","log__landscape_shannon","sqrt__landscape_shannon",
@@ -689,7 +692,7 @@ server <- function(input, output, session) {
         base_input_model$expmin__Alley.width <- exp(-input$Alley.width / 100)
         base_input_model$minlog__Alley.width <- -log(input$Alley.width + 0.01)
         base_input_model$reversed__Alley.width <- 1 / (1 + input$Alley.width)
-        base_input_model$reversedexp__Alley.width <- 1 / (1 + exp(input$Alley.width))
+        base_input_model$reversedexp__Alley.width <- 1 / (1 + exp(input$Alley.width / 100))
         base_input_model$minexpmin__Alley.width <- -exp(-input$Alley.width / 100)
       }
       if ("Crop_group" %in% moderators_model) base_input_model$Crop_group <- input$Crop_group
@@ -707,7 +710,7 @@ server <- function(input, output, session) {
         base_input_model$expmin__Age <- exp(-input$Age / 100)
         base_input_model$minlog__Age <- -log(input$Age + 0.01)
         base_input_model$reversed__Age <- 1 / (1 + input$Age)
-        base_input_model$reversedexp__Age <- 1 / (1 + exp(input$Age))
+        base_input_model$reversedexp__Age <- 1 / (1 + exp(input$Age / 100))
         base_input_model$minexpmin__Age <- -exp(-input$Age / 100)
       }
       # ----------------------------------------------------------------
@@ -825,7 +828,7 @@ server <- function(input, output, session) {
     # ----------------------------------------------------------------
     # For plotting curve along Age
     # ----------------------------------------------------------------
-    age_range <- seq(5, 60, by = 1)  # Adjust as needed
+    age_range <- seq(1, 60, by = 1)  # Adjust as needed
     
     results_age_curve <- do.call(rbind, lapply(1:nrow(gm_df), function(i) {
       model <- select_model(gm_df$Group[i], gm_df$Metric[i], input$AF_type)
@@ -846,7 +849,7 @@ server <- function(input, output, session) {
         base_template$expmin__forestshrub_frac <- exp(-input$forestshrub_frac / 100)
         base_template$minlog__forestshrub_frac <- -log(input$forestshrub_frac + 0.01)
         base_template$reversed__forestshrub_frac <- 1 / (1 + input$forestshrub_frac)
-        base_template$reversedexp__forestshrub_frac <- 1 / (1 + exp(input$forestshrub_frac))
+        base_template$reversedexp__forestshrub_frac <- 1 / (1 + exp(input$forestshrub_frac / 100))
         base_template$minexpmin__forestshrub_frac <- -exp(-input$forestshrub_frac / 100)
       }
       if (any(c("crop_frac","exp__crop_frac","log__crop_frac","sqrt__crop_frac",
@@ -859,7 +862,7 @@ server <- function(input, output, session) {
         base_template$expmin__crop_frac <- exp(-input$crop_frac / 100)
         base_template$minlog__crop_frac <- -log(input$crop_frac + 0.01)
         base_template$reversed__crop_frac <- 1 / (1 + input$crop_frac)
-        base_template$reversedexp__crop_frac <- 1 / (1 + exp(input$crop_frac))
+        base_template$reversedexp__crop_frac <- 1 / (1 + exp(input$crop_frac / 100))
         base_template$minexpmin__crop_frac <- -exp(-input$crop_frac / 100)
       }
       if (any(c("landscape_shannon","exp__landscape_shannon","log__landscape_shannon","sqrt__landscape_shannon",
@@ -889,7 +892,7 @@ server <- function(input, output, session) {
         base_template$expmin__Alley.width <- exp(-input$Alley.width / 100)
         base_template$minlog__Alley.width <- -log(input$Alley.width + 0.01)
         base_template$reversed__Alley.width <- 1 / (1 + input$Alley.width)
-        base_template$reversedexp__Alley.width <- 1 / (1 + exp(input$Alley.width))
+        base_template$reversedexp__Alley.width <- 1 / (1 + exp(input$Alley.width / 100))
         base_template$minexpmin__Alley.width <- -exp(-input$Alley.width / 100)
       }
       if ("Crop_group" %in% moderators_model) base_template$Crop_group <- input$Crop_group
@@ -925,7 +928,7 @@ server <- function(input, output, session) {
           iv_base$expmin__Age <- exp(-age_val / 100)
           iv_base$minlog__Age <- -log(age_val + 0.01)
           iv_base$reversed__Age <- 1 / (1 + age_val)
-          iv_base$reversedexp__Age <- 1 / (1 + exp(age_val))
+          iv_base$reversedexp__Age <- 1 / (1 + exp(age_val / 100))
           iv_base$minexpmin__Age <- -exp(-age_val / 100)
         }
         
