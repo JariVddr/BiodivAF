@@ -1,0 +1,153 @@
+---
+title: "Tool use Metrics"
+author: "Jari Vandendriessche"
+date: "2026-10-28"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# ==============================================================================
+# Function 1: Extract, Synchronize & Save Usage Data to CSV
+# ==============================================================================
+sync_usage_data <- function(app_name = "BiodivAF",
+                            account = "biodivaf",
+                            csv_file = "biodivaf_usage_daily.csv",
+                            from = "150d") {
+  
+  message("Fetching recent data from shinyapps.io...")
+  raw_new <- rsconnect::showUsage(
+    appName = app_name,
+    account = account,
+    usageType = "hours",
+    from = from,
+    interval = "1d")
+  
+  if (is.null(raw_new) || nrow(raw_new) == 0) {
+    warning("No new data returned from shinyapps.io.")
+    if (file.exists(csv_file)) return(read.csv(csv_file))
+    return(NULL)
+  }
+  
+  # Format new records (strictly timestamp and hours)
+  new_clean <- raw_new %>%
+    mutate(timestamp = as.numeric(timestamp),
+           hours = as.numeric(hours)) %>%
+    select(timestamp, hours)
+  
+  # Merge with existing CSV if it exists
+  if (file.exists(csv_file)) {
+    existing_data <- read.csv(csv_file, stringsAsFactors = FALSE) %>%
+      mutate(timestamp = as.numeric(timestamp),
+             hours = as.numeric(hours)) %>%
+      select(timestamp, hours)
+    
+    if (nrow(existing_data) > 0) {
+      last_ts <- max(existing_data$timestamp, na.rm = TRUE)
+      
+      # Drop the trailing (partial) timestamp and add from that timestamp on
+      existing_complete <- existing_data %>% filter(timestamp < last_ts)
+      new_to_add <- new_clean %>% filter(timestamp >= last_ts)
+      
+      combined_data <- bind_rows(existing_complete, new_to_add) %>%
+        distinct(timestamp, .keep_all = TRUE) %>%
+        arrange(timestamp)
+    } else {
+      combined_data <- new_clean %>% distinct(timestamp, .keep_all = TRUE) %>% arrange(timestamp)
+    }
+  } else {
+    combined_data <- new_clean %>% distinct(timestamp, .keep_all = TRUE) %>% arrange(timestamp)
+  }
+  
+  # Save to disk
+  write.csv(combined_data, csv_file, row.names = FALSE)
+  message("Successfully synced! CSV now contains ", nrow(combined_data), " days of data: ", csv_file)
+  return(combined_data)
+}
+
+# ==============================================================================
+# Function 2: Aggregate, Filter, and Plot
+# ==============================================================================
+plot_app_usage <- function(csv_file = "biodivaf_usage_daily.csv",
+                           resolution = c("weekly", "daily", "monthly"),
+                           time_span = "180d",
+                           app_name = "BiodivAF") {
+  
+  resolution <- match.arg(resolution)
+  if (!file.exists(csv_file)) {
+    stop("CSV file '", csv_file, "' not found. Run sync_usage_data() first.")
+  }
+  
+  # Read timestamp and derive date on the fly
+  df <- read.csv(csv_file, stringsAsFactors = FALSE) %>%
+    mutate(timestamp = as.numeric(timestamp),
+           date = as.Date(as.POSIXct(timestamp, origin = "1970-01-01", tz = "UTC")),
+           hours = as.numeric(hours))
+  
+  # 1. Filter by time span
+  if (time_span != "all") {
+    days_back <- switch(
+      sub("^[0-9]+", "", time_span),
+      "d" = as.numeric(sub("d", "", time_span)),
+      "m" = as.numeric(sub("m", "", time_span)) * 30.4,
+      "y" = as.numeric(sub("y", "", time_span)) * 365,
+      as.numeric(gsub("[^0-9]", "", time_span))
+    )
+    cutoff_date <- max(df$date, na.rm = TRUE) - days_back
+    df <- df %>% filter(date >= cutoff_date)
+  }
+  if (nrow(df) == 0) stop("No records exist within the selected time span.")
+  
+  # 2. Aggregate by chosen resolution
+  if (resolution == "daily") {
+    df_agg <- df %>% rename(period = date) %>% arrange(period)
+    bar_width <- 0.8
+    y_label <- "Active Instance Hours / Day"
+    date_breaks <- "2 weeks"
+  } else if (resolution == "weekly") {
+    df_agg <- df %>%
+      mutate(period = as.Date(cut(date, breaks = "week"))) %>%
+      group_by(period) %>%
+      summarise(hours = sum(hours, na.rm = TRUE), .groups = "drop") %>%
+      arrange(period)
+    bar_width <- 5
+    y_label <- "Active Instance Hours / Week"
+    date_breaks <- "1 month"
+  } else if (resolution == "monthly") {
+    df_agg <- df %>%
+      mutate(period = as.Date(cut(date, breaks = "month"))) %>%
+      group_by(period) %>%
+      summarise(hours = sum(hours, na.rm = TRUE), .groups = "drop") %>%
+      arrange(period)
+    bar_width <- 20
+    y_label <- "Active Instance Hours / Month"
+    date_breaks <- "2 months"
+  }
+  
+  # 3. Render plot
+  ggplot(df_agg, aes(x = period, y = hours)) +
+    geom_col(fill = "#1D4999", width = bar_width, alpha = 0.15) +
+    geom_line(color = "#1D4999", linewidth = 0.7, alpha = 0.75) +
+    geom_point(color = "#1D4999", size = 2) +
+    scale_x_date(date_breaks = date_breaks, date_labels = "%b %Y") +
+    labs(title = paste0(app_name, ": Application Usage (", tools::toTitleCase(resolution), ")"),
+         x = "Period", y = y_label) +
+    theme_classic(base_size = 13) +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+apps <- rsconnect::applications(account = "biodivaf")
+apps[, c("name", "status", "url")]
+
+sync_usage_data(app_name = "BiodivAF",
+                account = "biodivaf",
+                csv_file = "biodivaf_usage_daily.csv")
+
+plot_app_usage(resolution = "daily", time_span = "60d")
+plot_app_usage(resolution = "weekly", time_span = "180d")
+plot_app_usage(resolution = "monthly", time_span = "all")
+```
+
