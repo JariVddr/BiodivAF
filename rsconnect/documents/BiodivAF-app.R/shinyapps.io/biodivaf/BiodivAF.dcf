@@ -5,9 +5,9 @@ account: biodivaf
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16278836
-bundleId: 11566463
+bundleId: 12769449
 url: https://biodivaf.shinyapps.io/BiodivAF/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .Rprofile|BiodivAF-check.R|BiodivAF.7z|Database building.Rmd|Finetuning_initial_database.R|GridCoords.R|LandCompl_SoilData.R|Meta-analysis full database|model_evaluation_summary.csv|Model_updates.R|Model_updates_Full_Tool.Rmd|Model_updates_Full_Tool_replicates_separately.Rmd|Readme.md|renv.lock|10-fold-predictions|Data_per_study
+ignoredFiles: .Rprofile|BiodivAF-check.R|biodivaf_usage_daily-Ginkgo.csv|biodivaf_usage_daily.csv|Database building.Rmd|Finetuning_initial_database.R|GridCoords.R|LandCompl_SoilData.R|Meta-analysis full database|model_evaluation_summary.csv|Model_updates.R|Model_updates_Full_Tool.Rmd|Model_updates_Full_Tool_replicates_separately.Rmd|Readme.md|renv.lock|Tool_use.Rmd|10-fold-predictions|Data_per_study

@@ -110,11 +110,11 @@ ui <- fluidPage(
   # ================= INTRO PAGE =================
   div(id = "intro_page",
       div(class = "intro-text",
-          h1("Agroforestry Biodiversity Gain Estimator (beta)"),
+          h1("BiodivAF (beta)"),
           
           div(class = "intro-section",
               h3("Introduction"),
-              p(paste("This web application provides estimated biodiversity responses to agroforestry implementaion", 
+              p(paste("This prototype web application provides estimated biodiversity responses to agroforestry implementaion", 
                       "in European climatologic context based on existing case-studies and published scientific data.",
                       "More than 100 separate case-studies were included in the predictive modelling approach towards this tool.",
                       "For more information and the scientific background of this tool, please refer to the bibliography section below.",
@@ -129,7 +129,7 @@ ui <- fluidPage(
                    collapse = " ")),
           
           h3("Background"),
-          p(paste( "The development of this tool is part of the DigitAF project (digitaf.eu/). This european project focuses on", 
+          p(paste( "The initial development of this tool was part of the DigitAF project (digitaf.eu/). This european project focuses on", 
                    "the provision of open-source digital tools for stakeholders to understand effects of agroforestry implementations for agricultural resilience.", 
                    collapse = " ")),
           p(paste( "During the data assemblage for this tool, biodiversity results were collected on site- and group specific scale", 
@@ -178,9 +178,8 @@ ui <- fluidPage(
           p("Jari.vandendriessche@ugent.be"),
           
           h3("Acknowledgements"),
-          p(paste("This work was supported by the DigitAF project (Grant Agreement N° 101059794), co-funded by the European Commission,",
-                  "European Research Agency, within the Horizon Europe programme. The views and opinions expressed in this report are",
-                  "purely those of the writers and may not in any circumstances be regarded as stating an official position of the European Commission.")),
+          p(paste("This tool was developped with funding from the European Union’s Horizon Europe research and innovation programme ",
+                  "(DigitAF project, Grant Agreement N°101059794).")),
           
           br(),
           actionButton("sel_biodiv_model", "Select biodiversity metrics", class = "btn-primary btn-lg")
@@ -227,7 +226,7 @@ ui <- fluidPage(
   # ================= TOOL PAGE =================
   hidden(
     div(id = "tool_page",
-        titlePanel("Agroforestry Biodiversity Gain Estimator (beta)"),
+        titlePanel("BiodivAF (beta)"),
         
         sidebarLayout(
           sidebarPanel(
