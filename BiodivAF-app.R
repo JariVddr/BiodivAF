@@ -1050,3 +1050,4 @@ shinyApp(ui = ui, server = server)
 
 # Launch the app - CANNOT BE RUN FROM INSIDE
 # shiny::runApp("BiodivAF")
+# rsconnect::deployApp(appPrimaryDoc = "BiodivAF-app.R", appName = "BiodivAF", account = "biodivaf")
