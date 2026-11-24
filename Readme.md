@@ -6,8 +6,9 @@
 For more information we kindly refer to the publications below:
 1) Deliverable 3.3: <a href="https://doi.org/10.5281/zenodo.13834598." target="_blank">DOI: 10.5281/zenodo.13834598.</a>
 2) <a href="https://doi.org/10.1002/2688-8319.70133" target="_blank">DOI: 10.1002/2688-8319.70133</a>
-3) Deliverable 3.4: 
-4) The database: 
+3) Deliverable 3.4: <a href="https://doi.org/10.5281/zenodo.20289748" target="_blank">DOI: 10.5281/zenodo.20289748</a>
+4) The database: <a href="https://doi.org/10.5281/zenodo.17899828" target="_blank">DOI: 10.5281/zenodo.17899828</a> 
+5) Publication in Agroforestry Systems (currently type-setted)
 
 The current tool is available via <a href="https://biodivaf.shinyapps.io/BiodivAF/." target="_blank">https://biodivaf.shinyapps.io/BiodivAF/</a>
 
@@ -44,7 +45,11 @@ Data inputs that are needed of this repository for tool employment are:
 * model_outputs --> folder with model outputs used in the shiny app
 * 10-fold predictions --> folder with results for 10-fold-validation loop for current tool version
 
-#### Jari Vandendriessche
+*Usage*
+* biodivaf_usage_daily --> usage since June 2026
+* Tool_use --> extract tool use data
+
+#### Jari Vandendriessche 
 ##### Forest and Nature Lab
 ##### Ghent University
 
@@ -52,3 +57,6 @@ Refer to as:
 Vandendriessche, J., Landuyt, D., Eeraerts, M., Verheyen, K., & De Frenne, P. (2025). An evidence-based modeling framework to assess biodiversity change through agroforestry implementation in European context. Zenodo. https://doi.org/10.5281/zenodo.17900792
 
 This work was supported by the DigitAF project (Grant Agreement N° 101059794), co-funded by the European Commission, European Research Agency, within the Horizon Europe programme. 
+
+*Contact*
+(jari.vandendriessche@ugent.be)
