@@ -187,6 +187,7 @@ ui <- fluidPage(
       
       div(class = "logo-container",
           tags$img(src = "Logos/DigitAF.png"),
+          tags$img(src = "Logos/EUfundedV.png"),
           tags$img(src = "Logos/UGent.png"),
           tags$img(src = "Logos/ForNaLab.png")
       )
